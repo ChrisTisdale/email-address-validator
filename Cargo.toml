@@ -1,0 +1,27 @@
+[package]
+name = "email_address_validator"
+authors = ["Chris Tisdale <crates.io.affection262@passmail.net>"]
+description = "A simple email address parsing library"
+documentation = "https://docs.rs/email_address_validator"
+include = [
+    "/Cargo.toml",
+    "/LICENSE.md",
+    "/README.md",
+    "/src/**"
+]
+version = "0.1.0"
+edition = "2021"
+resolver = "3"
+license = "MPL-2"
+readme = "README.md"
+repository = "https://github.com/ChrisTisdale/email-address-validator"
+publish = true
+
+[features]
+std = ["thiserror/default"]
+default = ["std"]
+serde = ["std", "dep:serde"]
+
+[dependencies]
+serde = { version = "1.0.228", features = ["derive"], optional = true }
+thiserror = { version = "2.0.18", default-features = false }
