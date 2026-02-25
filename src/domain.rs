@@ -52,6 +52,16 @@ pub enum DomainType {
     IpAddress,
 }
 
+impl Display for DomainType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FormatResult {
+        match self {
+            Self::HostName => write!(f, "HostName"),
+            Self::LocalDomain => write!(f, "LocalDomain"),
+            Self::IpAddress => write!(f, "IpAddress"),
+        }
+    }
+}
+
 /// Represents a domain name, which can be either a hostname, local domain, or IP address.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Hash, Ord, PartialOrd, Eq, PartialEq, Clone)]
@@ -275,6 +285,8 @@ impl Display for Domain {
 mod tests {
     use super::*;
     use crate::{DomainValidationOptionsBuilder, TrimWhitespace};
+    #[cfg(not(feature = "std"))]
+    use alloc::format;
 
     #[test]
     fn test_host_name_domain_type() {
@@ -559,5 +571,68 @@ mod tests {
         let domain = domain.unwrap();
         assert_eq!(domain.domain_type(), &DomainType::HostName);
         assert_eq!(domain.address(), "very-long-subdomain.very-long-domain.com");
+    }
+
+    #[test]
+    fn ipv6_domain_display_works() {
+        let domain = Domain::try_parse(
+            "[::1]",
+            &DomainValidationOptionsBuilder::new()
+                .with_domain_support(DomainSupport::All)
+                .build(),
+        );
+        assert!(domain.is_ok());
+        let domain = domain.unwrap();
+        assert_eq!(domain.domain_type(), &DomainType::IpAddress);
+        assert_eq!(format!("{domain}"), "[::1]");
+    }
+
+    #[test]
+    fn ip_domain_display_works() {
+        let domain = Domain::try_parse(
+            "[127.0.0.1]",
+            &DomainValidationOptionsBuilder::new()
+                .with_domain_support(DomainSupport::All)
+                .build(),
+        );
+        assert!(domain.is_ok());
+        let domain = domain.unwrap();
+        assert_eq!(domain.domain_type(), &DomainType::IpAddress);
+        assert_eq!(format!("{domain}"), "[127.0.0.1]");
+    }
+
+    #[test]
+    fn host_domain_display_works() {
+        let domain = Domain::try_parse(
+            "example.com",
+            &DomainValidationOptionsBuilder::new()
+                .with_domain_support(DomainSupport::All)
+                .build(),
+        );
+        assert!(domain.is_ok());
+        let domain = domain.unwrap();
+        assert_eq!(domain.domain_type(), &DomainType::HostName);
+        assert_eq!(format!("{domain}"), "example.com");
+    }
+
+    #[test]
+    fn local_domain_display_works() {
+        let domain = Domain::try_parse(
+            "local",
+            &DomainValidationOptionsBuilder::new()
+                .with_domain_support(DomainSupport::All)
+                .build(),
+        );
+        assert!(domain.is_ok());
+        let domain = domain.unwrap();
+        assert_eq!(domain.domain_type(), &DomainType::LocalDomain);
+        assert_eq!(format!("{domain}"), "local");
+    }
+
+    #[test]
+    fn ip_domain_from_ip_works() {
+        let domain = Domain::from(IpAddr::from([127, 0, 0, 1]));
+        assert_eq!(domain.domain_type(), &DomainType::IpAddress);
+        assert_eq!(domain.address(), "127.0.0.1");
     }
 }
