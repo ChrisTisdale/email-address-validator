@@ -2,6 +2,8 @@
 name = "email_address_validator"
 authors = ["Chris Tisdale <crates.io.affection262@passmail.net>"]
 description = "A simple email address parsing library"
+rust-version = "1.93.0"
+keywords = ["email-address"]
 documentation = "https://docs.rs/email_address_validator"
 version = "0.1.0"
 edition = "2021"
@@ -9,6 +11,13 @@ resolver = "3"
 license = "MPL-2"
 readme = "crates-io.md"
 repository = "https://github.com/ChrisTisdale/email-address-validator"
+include = [
+    "src/**",
+    "Cargo.lock",
+    "Cargo.toml",
+    "LICENSE.md",
+    "crates-io.md"
+]
 publish = true
 
 [features]
