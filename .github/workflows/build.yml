@@ -68,7 +68,7 @@ jobs:
       - name: Cargo fmt
         run: cargo fmt --all -- --check
       - name: Cargo clippy
-        run: cargo clippy ${{ matrix.build-flags }} --all -- -W clippy::all -W clippy::pedantic -W clippy::nursery -D warnings
+        run: cargo clippy ${{ matrix.build-flags }} --all -- -W clippy::all -W clippy::pedantic -W clippy::nursery -W clippy::cargo -D warnings
 
   build-docs:
     runs-on: ubuntu-latest

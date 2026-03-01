@@ -41,7 +41,7 @@ use crate::{
 
 const SPECIAL_CHARS: &str = r#""(),:;<>@[\] "#;
 
-const VALID_CHARS: &str = "!#$%&'*+-/=?^_`{|}~.";
+const VALID_CHARS: &str = "!#$%&'*+-/=?^_`{|}~";
 
 static DEFAULT_VALIDATION_OPTIONS: EmailValidationOptions = EmailValidationOptions::new();
 
@@ -321,18 +321,6 @@ impl EmailAddress {
                 }
 
                 escaped = !escaped;
-            } else if SPECIAL_CHARS.contains(c) {
-                if !quoted {
-                    return Err(EmailParseError::InvalidCharacters {
-                        character_set: SPECIAL_CHARS.to_owned(),
-                    });
-                } else if !escaped && c == '"' {
-                    return Err(EmailParseError::InvalidEscapeSequence {
-                        sequence: format!("{c}"),
-                    });
-                }
-
-                escaped = false;
             } else if c == '.' {
                 if !quoted && dot_found {
                     return Err(EmailParseError::InvalidCharacters {
@@ -344,16 +332,33 @@ impl EmailAddress {
                     });
                 }
 
+                escaped = false;
                 dot_found = true;
             } else if (c < '0' || c > '9' && c < 'A' || c > 'Z' && c < 'a' || c > 'z')
                 && !VALID_CHARS.contains(c)
                 && !(option.text_encoding == TextEncoding::Utf8 && c > '')
             {
-                return Err(EmailParseError::InvalidCharacters {
-                    character_set: String::from(c),
-                });
+                if SPECIAL_CHARS.contains(c) {
+                    if !quoted {
+                        return Err(EmailParseError::InvalidCharacters {
+                            character_set: SPECIAL_CHARS.to_owned(),
+                        });
+                    } else if !escaped && c == '"' {
+                        return Err(EmailParseError::InvalidEscapeSequence {
+                            sequence: format!("{c}"),
+                        });
+                    }
+                } else {
+                    return Err(EmailParseError::InvalidCharacters {
+                        character_set: String::from(c),
+                    });
+                }
+
+                escaped = false;
+                dot_found = false;
             } else {
                 dot_found = false;
+                escaped = false;
             }
         }
 
